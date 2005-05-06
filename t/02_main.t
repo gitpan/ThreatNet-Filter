@@ -15,7 +15,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 28;
+use Test::More tests => 48;
 use ThreatNet::Message::IPv4;
 
 my $Message = ThreatNet::Message::IPv4->new( '123.123.123.123' );
@@ -120,6 +120,48 @@ use ThreatNet::Filter::Chain;
 	package My::Filter2;
 	use base 'ThreatNet::Filter';
 	sub keep { $counter2++; 1 }
+}
+
+
+
+
+
+#####################################################################
+# Tests for ThreatNet::Filter::Network
+
+use ThreatNet::Filter::Network;
+{
+	my $Filter1 = ThreatNet::Filter::Network->new(
+		discard => '123.123.123.123', 'LOCAL', '124.1.0.0/16'
+		);
+	my $Filter2 = ThreatNet::Filter::Network->new( keep => 'rfc1918' );
+	isa_ok( $Filter1, 'ThreatNet::Filter::Network' );
+	is( $Filter1->type, 'discard', '->type returns discard correctly' );
+	is( $Filter2->type, 'keep',    '->type returns keep correctly' );
+	is_deeply( [ $Filter1->network ], [
+		'123.123.123.123', '127.0.0.0/8',
+		'10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16',
+		'124.1.0.0/16',
+		], '->network returns as expect for local expansion' );
+	is_deeply( [ $Filter2->network ], [
+		'10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16',
+		], '->network returns as expected for wrong-cases rfc expansion' );
+
+	# Throw some messages at the filter chain
+	my @messages = (
+		'123.123.123.123' => '', '',
+		'123.123.123.124' => 1,  '',
+		'1.2.3.4'         => 1,  '',
+		'127.0.0.2'       => '', '',
+		'10.0.0.4'        => '', 1,
+		);
+	while ( @messages ) {
+		my $ip = shift @messages;
+		my $Message = ThreatNet::Message::IPv4->new( $ip );
+		isa_ok( $Message, 'ThreatNet::Message::IPv4' );
+		is( $Filter1->keep($Message), shift(@messages), "$ip: Filter1->keep returns as expected" );
+		is( $Filter2->keep($Message), shift(@messages), "$ip: Filter2->keep returns as expected" );
+	}
 }
 
 1;

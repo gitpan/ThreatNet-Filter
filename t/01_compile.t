@@ -20,7 +20,7 @@ BEGIN {
 
 
 # Does everything load?
-use Test::More 'tests' => 5;
+use Test::More 'tests' => 6;
 
 ok( $] >= 5.005, 'Your perl is new enough' );
 
@@ -28,5 +28,6 @@ use_ok( 'ThreatNet::Filter'              );
 use_ok( 'ThreatNet::Filter::Null'        );
 use_ok( 'ThreatNet::Filter::Chain'       );
 use_ok( 'ThreatNet::Filter::ThreatCache' );
+use_ok( 'ThreatNet::Filter::Network'     );
 
 1;

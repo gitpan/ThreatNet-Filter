@@ -10,6 +10,7 @@ inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 lib/ThreatNet/Filter.pm
 lib/ThreatNet/Filter/Chain.pm
+lib/ThreatNet/Filter/Network.pm
 lib/ThreatNet/Filter/Null.pm
 lib/ThreatNet/Filter/ThreatCache.pm
 LICENSE

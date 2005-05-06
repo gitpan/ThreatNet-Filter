@@ -1,5 +1,8 @@
 Revision history for Perl extension ThreatNet::Filter
 
+0.02 Sat May 7 2005
+	- Added ThreatNet::Filter::Network
+
 0.01 Sun May 1 2005
 	- Created the initial dist with the abstrct, null,
 	  chain and Threat Cache filters.
