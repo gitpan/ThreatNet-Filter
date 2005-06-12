@@ -15,7 +15,7 @@ BEGIN {
 	}
 }
 
-use Test::More tests => 48;
+use Test::More tests => 51;
 use ThreatNet::Message::IPv4;
 
 my $Message = ThreatNet::Message::IPv4->new( '123.123.123.123' );
@@ -73,6 +73,12 @@ use ThreatNet::Filter::ThreatCache;
 	# rejected the second time
 	is( $Filter->keep($Message), 1, '->keep(msg) returns true the first time' );
 	is( $Filter->keep($Message), '', '->keep(msg) returns false the second time' );
+
+	# Does it return some stats
+	is( ref($Filter->stats), 'HASH', '->stats returns stats' );
+	my $stats = $Filter->stats;
+	is( $stats->{seen}, 2, 'stats{seen} is correct' );
+	is( $stats->{kept}, 1, 'stats{kept} is correct' );
 }
 
 

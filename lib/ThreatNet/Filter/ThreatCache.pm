@@ -30,7 +30,7 @@ use base 'ThreatNet::Filter';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.02';
+	$VERSION = '0.03';
 }
 
 
@@ -66,8 +66,12 @@ sub new {
 
 	# When we will be syncronised?
 	# Add a couple of seconds to allow for small initialization delays.
+	my $t = time();
 	$self->{timeout} = defined $args{timeout} ? $args{timeout} : 3600;
-	$self->{sync_at} = $self->{timeout} + time() + 2;
+	$self->{sync_at} = $self->{timeout} + $t + 2;
+
+	# Collect some very basic statistic
+	$self->{stats} = { time_start => $t, => seen => 0, kept => 0 };
 
 	$self;
 }
@@ -108,6 +112,9 @@ sub keep {
 	my $created = $Message->created or return undef;
 	my $ip      = $Message->ip      or return undef;
 
+	# At this point, we've officially "seen" the message
+	$self->{stats}->{seen}++;
+
 	# If the ip is in the cache, don't keep it
 	return '' if $self->{cache_ip}->{$ip};
 
@@ -119,6 +126,7 @@ sub keep {
 	### creation time to event time.
 	$self->{cache_ip}->{$ip} = $created;
 	push @{$self->{cache_time}}, { time => $created, ip => $ip };
+	$self->{stats}->{kept} = 1;
 
 	1;
 }
@@ -137,6 +145,57 @@ Returns true if the current time is past the sync time, or false if not.
 sub synced {
 	my $self = shift;
 	!! (time() > $self->{sync_at});
+}
+
+=pod
+
+=head2 stats
+
+The C<stats> method returns a hash with a variety of statistics from
+the Threat Cache.
+
+Returns the stats as a C<HASH> reference.
+
+=cut
+
+sub stats {
+	my $self  = shift;
+	my %stats = ();
+
+	# Generate the general statistics
+	$stats{size}    = scalar @{$self->{cache_time}};
+	$stats{seen}    = $self->{stats}->{seen};
+	$stats{kept}    = $self->{stats}->{kept};
+	$stats{discard} = $stats{seen} - $stats{kept};
+	$stats{expired} = $stats{kept} - $stats{size};
+	
+	# Add the time statistics
+	$stats{time_start}   = $self->{stats}->{time_start};
+	$stats{time_current} = time();
+	$stats{time_running} = $stats{time_current} - $stats{time_start};
+
+	# Percentages
+	$stats{percent_kept}    = $self->_perc($stats{kept}, $stats{seen});
+	$stats{percent_discard} = $self->_perc($stats{discard}, $stats{seen});
+
+	# Rates
+	$stats{rate_seen} = $self->_rate($stats{seen}, $stats{time_running});
+	$stats{rate_kept} = $self->_rate($stats{kept}, $stats{time_running});
+
+	\%stats;
+}
+
+sub _perc {
+	my (undef, $items, $total) = @_;
+	my $perc = $total ? ($items / $total) : 0;
+	$perc = $perc * 100;
+	sprintf("%0.1f", $perc) . '%';
+}
+
+sub _rate {
+	my (undef, $items, $interval) = @_;
+	my $rate = $interval ? ($items / $interval) : 0;
+	sprintf("%0.1f", $rate);
 }
 
 1;

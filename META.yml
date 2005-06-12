@@ -1,5 +1,5 @@
 name: ThreatNet-Filter
-version: 0.02
+version: 0.03
 abstract: The ThreatNet message filtering API
 author: Adam Kennedy<cpan@ali.as>
 license: perl
