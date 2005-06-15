@@ -1,5 +1,8 @@
 Revision history for Perl extension ThreatNet::Filter
 
+0.04 Wed Jun 15 2005
+	- Fixing a small stats bug
+
 0.03 Sun Jun 12 2005
 	- Added statistics collection to ThreatNet::Filter::ThreatCache
 

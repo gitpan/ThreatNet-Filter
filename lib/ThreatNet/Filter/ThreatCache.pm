@@ -30,7 +30,7 @@ use base 'ThreatNet::Filter';
 
 use vars qw{$VERSION};
 BEGIN {
-	$VERSION = '0.03';
+	$VERSION = '0.04';
 }
 
 
@@ -126,7 +126,7 @@ sub keep {
 	### creation time to event time.
 	$self->{cache_ip}->{$ip} = $created;
 	push @{$self->{cache_time}}, { time => $created, ip => $ip };
-	$self->{stats}->{kept} = 1;
+	$self->{stats}->{kept}++;
 
 	1;
 }
